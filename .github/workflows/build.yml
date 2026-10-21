@@ -1,32 +1,94 @@
-name: Build APK
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - index.html
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: Build
-        run: |
-          mkdir app && cd app && mkdir www
-          cp ../index.html www/index.html
-          npm init -y
-          npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
-          npx cap init Calc com.example.calc --web-dir=www
-          npx cap add android
-          npx cap sync android
-          cd android && ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: calc-apk
-          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حیسابکەر</title>
+<style>
+:root{--bg:#f3f5f7;--s:#fff;--t:#14202b;--m:#5b6b7a;--l:#d5dde4;--a:#0f6b5c;--at:#fff;--e:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#0e151b;--s:#16212a;--t:#e8eef3;--m:#93a4b3;--l:#2a3a47;--a:#3cc4a8;--at:#06231d;--e:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font-family:Tahoma,system-ui,sans-serif;line-height:1.4;padding-top:env(safe-area-inset-top,0px)}
+main{max-width:520px;margin:0 auto;padding:8px 10px 24px}
+.c{background:var(--s);border:1px solid var(--l);border-radius:12px;padding:10px}
+label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}
+textarea,#cur{width:100%;direction:ltr;color:var(--t);background:var(--bg);border:1px solid var(--l);border-radius:8px;font:inherit;font-size:1rem;padding:6px}
+textarea{min-height:40px;text-align:left;resize:none}
+#cur{margin-top:8px;text-align:center;font-size:1.1rem}
+button{font:inherit;cursor:pointer;border-radius:8px}
+.r{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+#clr{padding:2px 14px;font-size:.85rem;color:var(--m);background:none;border:1px solid var(--l);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.y{background:#ffd60a;color:#14202b;font-weight:700;font-size:1.1rem;padding:0 12px;border-radius:8px;direction:ltr;min-width:2.4rem;text-align:center}
+.y:empty{display:none}
+#out{margin-top:6px;text-align:center;font-size:2rem;font-weight:700;direction:ltr;word-break:break-all}
+#out.e{color:var(--e);font-size:1rem;direction:rtl}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px auto 0;max-width:200px}
+.pad button{padding:6px 0;font-size:1rem;color:var(--t);background:var(--bg);border:1px solid var(--l)}
+.pad .ok{color:var(--at);background:var(--a);border-color:var(--a)}
+</style>
+</head>
+<body>
+<main>
+<div class="c">
+<label for="inp">ژمارەکان</label>
+<textarea id="inp" rows="1" readonly inputmode="none"></textarea>
+<div class="r"><button id="clr" type="button">سڕینەوە</button><span id="f" class="y"></span></div>
+<div id="out"></div>
+<input id="cur" type="text" readonly inputmode="none">
+<div class="pad" id="pad">
+<button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+<button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+<button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+<button data-k="del">⌫</button><button data-k="0">0</button><button data-k="ok" class="ok">OK</button>
+</div>
+</div>
+</main>
+<script>
+const R=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const $=id=>document.getElementById(id),inp=$('inp'),out=$('out'),cur=$('cur'),clr=$('clr');
+const mod=(n,m)=>((n%m)+m)%m,cat=(a,b)=>parseInt(''+a+b,10);
+let L=[30,35,13,24,2,6,15,25,13,35,35,17,20,19,17,23,34];
+function calc(a){
+if(a.length<6)throw new Error('بەلانی کەم ٦ ژمارە پێویستە.');
+if(a[2]===0)throw new Error('ژمارەی سێیەم نابێت سفر بێت.');
+const num=Math.abs(Math.floor((a[0]+a[1])/a[2])-a[3]);
+const i=R.indexOf(num);
+if(i<0)throw new Error('ژمارەی '+num+' لە لیستی r نییە.');
+const l=R[mod(i-1,37)],r=R[mod(i+1,37)];
+const p1=cat(l,a[0]),p2=cat(num,a[1]),p3=cat(r,a[2]);
+const q1=cat(a[3],l),q2=cat(a[4],num),q3=cat(a[5],r);
+const A=p1+p2+p3+p3+q1+q2+q3+q3+a[0]-p2-q2;
+const B=[];
+for(let k=1;k<=36;k++)B.push([k*(k-1)*10,k]);
+B.sort((x,y)=>Math.abs(x[0]-A)-Math.abs(y[0]-A));
+const t=B.slice(0,2).sort((x,y)=>x[0]-y[0]);
+const c=v=>{const s=String(v).slice(1,-1);if(!s)throw new Error('ژمارە زۆر بچووکە.');return parseInt(s,10)};
+return Math.floor((c(t[0][0])+c(t[1][0])-100)/2);
+}
+function run(){
+inp.value=L.slice(0,6).join(',');
+$('f').textContent=L.length>2?L[2]:'';
+out.className='';
+if(L.length<6){out.textContent='';return}
+try{out.textContent=calc(L)}catch(e){out.className='e';out.textContent=e.message}
+}
+let tm,iv;
+function stop(){clearTimeout(tm);clearInterval(iv)}
+function del1(){L.shift();run();if(!L.length)stop()}
+clr.onpointerdown=e=>{e.preventDefault();stop();del1();tm=setTimeout(()=>{iv=setInterval(del1,110)},350)};
+clr.onpointerup=clr.onpointerleave=clr.onpointercancel=stop;
+clr.oncontextmenu=e=>e.preventDefault();
+$('pad').onclick=e=>{
+const b=e.target.closest('button');if(!b)return;
+const k=b.dataset.k;
+if(k==='ok'){
+if(!cur.value)return;
+L.unshift(parseInt(cur.value,10));
+cur.value='';run();
+}else if(k==='del')cur.value=cur.value.slice(0,-1);
+else cur.value+=k;
+};
+run();
+</script>
+</body>
+</html>
