@@ -19,7 +19,7 @@ jobs:
       - name: Build
         run: |
           mkdir app && cd app && mkdir www
-          cp ../index.html www/index12.html
+          cp ../index.html www/index.html
           npm init -y
           npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
           npx cap init Calc com.example.calc --web-dir=www
