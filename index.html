@@ -67,7 +67,7 @@ return Math.floor((c(t[0][0])+c(t[1][0])-100)/2);
 }
 function run(){
 inp.value=L.slice(0,6).join(',');
-$('f').textContent=L.length>2?L[2]:'';
+$('f').textContent=[L[0],L[3]].filter(v=>v!==undefined).join(' , ');
 out.className='';
 if(L.length<6){out.textContent='';return}
 try{out.textContent=calc(L)}catch(e){out.className='e';out.textContent=e.message}
