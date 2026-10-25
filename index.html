@@ -18,7 +18,7 @@ textarea{min-height:40px;text-align:left;resize:none}
 button{font:inherit;cursor:pointer;border-radius:8px}
 .r{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 #clr{padding:2px 14px;font-size:.85rem;color:var(--m);background:none;border:1px solid var(--l);touch-action:manipulation;user-select:none;-webkit-user-select:none}
-#out{margin-top:6px;text-align:center;font-size:2rem;font-weight:700;direction:ltr;word-break:break-all}
+#out{margin-top:6px;text-align:center;font-size:1.5rem;font-weight:700;direction:ltr;word-break:break-all}
 #out.e{color:var(--e);font-size:1rem;direction:rtl}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px auto 0;max-width:200px}
 .pad button{padding:6px 0;font-size:1rem;color:var(--t);background:var(--bg);border:1px solid var(--l)}
@@ -43,21 +43,25 @@ button{font:inherit;cursor:pointer;border-radius:8px}
 </main>
 <script>
 const $=id=>document.getElementById(id),inp=$('inp'),out=$('out'),cur=$('cur'),clr=$('clr');
-const cat=(a,b)=>parseInt(''+a+b,10);
-let L=[29,27,9,29,27,33,4,8,31,12,21,29,2,15,1,31,13,33,36,24];
+const W=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const mod=(n,m)=>((n%m)+m)%m,cat=(a,b)=>parseInt(''+a+b,10);
+let L=[9,26,28,2,25,6,30,14,8,35,7,33,23,10,24,31,25,24,22,12,2,0,5];
 function calc(a){
 if(a.length<4)throw new Error('بەلانی کەم ٤ ژمارە پێویستە.');
 const C=a.slice(0,4).map(n=>cat(Math.floor(n/10)**2,n%10));
 if(C[2]===0)throw new Error('دابەشکردن بە سفر.');
 const num=Math.floor((C[0]+C[1])/C[2])-C[3];
-const p1=Math.abs(Math.abs(num)-a[1]);
-return (a[1]+a[2]+a[3])-p1-a[0];
+const pr=Math.abs(a[1]+a[2]+a[3]+Math.abs(num));
+const i=W.indexOf(a[0]);
+if(i<0)throw new Error('ژمارەی یەکەم دەبێت لە ٠ تا ٣٦ بێت.');
+const r=[-3,-2,-1,0,1,2,3].map(j=>Math.trunc(parseFloat('0.'+W[mod(i+j,37)])*pr));
+return [...new Set(r.filter(x=>x<=36))].sort((x,y)=>x-y);
 }
 function run(){
 inp.value=L.slice(0,6).join(',');
 out.className='';
 if(L.length<4){out.textContent='';return}
-try{out.textContent=calc(L)}catch(e){out.className='e';out.textContent=e.message}
+try{out.textContent='['+calc(L).join(', ')+']'}catch(e){out.className='e';out.textContent=e.message}
 }
 let tm,iv;
 function stop(){clearTimeout(tm);clearInterval(iv)}
