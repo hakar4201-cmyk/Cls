@@ -22,6 +22,26 @@ button{font:inherit;cursor:pointer;border-radius:8px}
 #out{flex:1;text-align:center;font-size:1.5rem;font-weight:700;direction:ltr;word-break:break-all}
 .y{background:#ffd60a;color:#14202b;font-weight:700;font-size:1.5rem;padding:2px 14px;border-radius:8px;direction:ltr;min-width:2.4rem;text-align:center}
 .y:empty{display:none}
+#out.e{color:var(--e);font-size:1rem;direction:rtl}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px auto 0;max-width:200px}
+.pad button{padding:6px 0;font-size:1rem;color:var(--t);background:var(--bg);border:1px solid var(--l)}
+.pad .ok{color:var(--at);background:var(--a);border-color:var(--a)}
+</style>
+</head>
+<body>
+<main>
+<div class="c">
+<label for="inp">ژمارەکان</label>
+<textarea id="inp" rows="1" readonly inputmode="none"></textarea>
+<div class="r"><button id="clr" type="button">سڕینەوە</button></div>
+<div class="o"><span id="f" class="y"></span><div id="out"></div></div>
+<input id="cur" type="text" readonly inputmode="none">
+<div class="pad" id="pad">
+<button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+<button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+<button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+<button data-k="del">⌫</button><button data-k="0">0</button><button data-k="ok" class="ok">OK</button>
+</div>
 </div>
 </main>
 <script>
