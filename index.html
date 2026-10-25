@@ -18,34 +18,17 @@ textarea{min-height:40px;text-align:left;resize:none}
 button{font:inherit;cursor:pointer;border-radius:8px}
 .r{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 #clr{padding:2px 14px;font-size:.85rem;color:var(--m);background:none;border:1px solid var(--l);touch-action:manipulation;user-select:none;-webkit-user-select:none}
-#out{margin-top:6px;text-align:center;font-size:1.5rem;font-weight:700;direction:ltr;word-break:break-all}
-#out.e{color:var(--e);font-size:1rem;direction:rtl}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px auto 0;max-width:200px}
-.pad button{padding:6px 0;font-size:1rem;color:var(--t);background:var(--bg);border:1px solid var(--l)}
-.pad .ok{color:var(--at);background:var(--a);border-color:var(--a)}
-</style>
-</head>
-<body>
-<main>
-<div class="c">
-<label for="inp">ژمارەکان</label>
-<textarea id="inp" rows="1" readonly inputmode="none"></textarea>
-<div class="r"><button id="clr" type="button">سڕینەوە</button></div>
-<div id="out"></div>
-<input id="cur" type="text" readonly inputmode="none">
-<div class="pad" id="pad">
-<button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-<button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
-<button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
-<button data-k="del">⌫</button><button data-k="0">0</button><button data-k="ok" class="ok">OK</button>
-</div>
+.o{display:flex;align-items:center;gap:8px;margin-top:6px}
+#out{flex:1;text-align:center;font-size:1.5rem;font-weight:700;direction:ltr;word-break:break-all}
+.y{background:#ffd60a;color:#14202b;font-weight:700;font-size:1.5rem;padding:2px 14px;border-radius:8px;direction:ltr;min-width:2.4rem;text-align:center}
+.y:empty{display:none}
 </div>
 </main>
 <script>
 const $=id=>document.getElementById(id),inp=$('inp'),out=$('out'),cur=$('cur'),clr=$('clr');
 const W=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 const mod=(n,m)=>((n%m)+m)%m,cat=(a,b)=>parseInt(''+a+b,10);
-let L=[9,26,28,2,25,6,30,14,8,35,7,33,23,10,24,31,25,24,22,12,2,0,5];
+let L=[25,6,30,14,8,35,7,33,23,10,24,31,25,24,22,12,2,0,5];
 function calc(a){
 if(a.length<4)throw new Error('بەلانی کەم ٤ ژمارە پێویستە.');
 const C=a.slice(0,4).map(n=>cat(Math.floor(n/10)**2,n%10));
@@ -55,13 +38,17 @@ const pr=Math.abs(a[1]+a[2]+a[3]+Math.abs(num));
 const i=W.indexOf(a[0]);
 if(i<0)throw new Error('ژمارەی یەکەم دەبێت لە ٠ تا ٣٦ بێت.');
 const r=[-3,-2,-1,0,1,2,3].map(j=>Math.trunc(parseFloat('0.'+W[mod(i+j,37)])*pr));
-return [...new Set(r.filter(x=>x<=36))].sort((x,y)=>x-y);
+const A=[...new Set(r.filter(x=>x<=36))].sort((x,y)=>x-y);
+if(!A.length)throw new Error('ئەنجام بەتاڵە.');
+let k=A[0]-2;if(k<0)k+=a.length;
+if(k<0||k>=a.length)throw new Error('ژمارەی لیستەکە کەمە.');
+return {A,last:a[k]};
 }
 function run(){
 inp.value=L.slice(0,6).join(',');
-out.className='';
+out.className='';$('f').textContent='';
 if(L.length<4){out.textContent='';return}
-try{out.textContent='['+calc(L).join(', ')+']'}catch(e){out.className='e';out.textContent=e.message}
+try{const r=calc(L);out.textContent='['+r.A.join(', ')+']';$('f').textContent=r.last}catch(e){out.className='e';out.textContent=e.message}
 }
 let tm,iv;
 function stop(){clearTimeout(tm);clearInterval(iv)}
