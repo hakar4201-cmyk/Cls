@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Penguin Fast Food</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f5f8;color:#202a36}
+header{background:#102c46;color:white;padding:18px;text-align:center}
+header h1{margin:0;font-size:25px}
+main{max-width:750px;margin:auto;padding:15px}
+h2{text-align:center}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:14px}
+.choice{background:white;border:2px solid #d9e1e8;min-height:100px;font-size:20px;font-weight:bold}
+.choice:active,.choice:hover{border-color:#1675bd}
+.product{background:white;padding:13px;border-radius:12px;margin:10px 0;display:flex;align-items:center;gap:8px}
+.product .info{flex:1}
+.price{color:#087c54;font-weight:bold;margin-top:5px}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{background:#e5edf5;padding:8px 13px;font-weight:bold}
+.primary{background:#087cba;color:white;width:100%;margin-top:12px}
+.secondary{background:#e1e8ef;color:#172b3c;width:100%;margin-top:10px}
+.total{background:white;padding:16px;border-radius:12px;text-align:center;font-size:22px;font-weight:bold;margin-top:15px}
+.hidden{display:none}
+.cartline{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #ddd}
+.small{font-size:14px;color:#647486}
+</style>
+</head>
+<body>
+<header><h1>🐧 Penguin Fast Food</h1></header>
+<main>
+<section id="start">
+<h2>جۆری خواردن هەڵبژێرە</h2>
+<div class="grid">
+<button class="choice" onclick="chooseType('بوکس')">📦<br>بوکس</button>
+<button class="choice" onclick="chooseType('سەموون')">🥖<br>سەموون</button>
+<button class="choice" onclick="chooseType('تورتێلا')">🌯<br>تورتێلا</button>
+</div>
+</section>
+
+<section id="menu" class="hidden">
+<button class="secondary" onclick="showPage('start')">⬅ گەڕانەوە بۆ جۆری خواردن</button>
+<h2 id="menuTitle"></h2>
+<p class="small">بەرهەم هەڵبژێرە؛ دەتوانیت چەند دانە زیاد بکەیت.</p>
+<div id="products"></div>
+<div class="total">کۆی گشتی: $<span id="total">0</span></div>
+<button class="primary" onclick="showCart()">بینینی سەبەتە و OK</button>
+</section>
+
+<section id="cart" class="hidden">
+<button class="secondary" onclick="showPage('menu')">⬅ گەڕانەوە بۆ بەرهەمەکان</button>
+<h2>سەبەتەی خواردن</h2>
+<div id="cartItems"></div>
+<div class="total">کۆی گشتی: $<span id="cartTotal">0</span></div>
+<button class="primary" onclick="placeOrder()">OK - ناردنی داواکاری</button>
+</section>
+
+<section id="done" class="hidden">
+<h2>✅ داواکارییەکە تۆمار کرا</h2>
+<p>سوپاس بۆ هەڵبژاردنت!</p>
+<button class="primary" onclick="newOrder()">داواکارییەکی نوێ</button>
+</section>
+</main>
+
+<script>
+const items=[
+{name:'گۆشت',price:2,types:['بوکس','سەموون','تورتێلا']},
+{name:'مریشک',price:2,types:['بوکس','سەموون','تورتێلا']},
+{name:'ماسی',price:3,types:['بوکس','تورتێلا']},
+{name:'پەتاتە',price:1,types:['بوکس','سەموون','تورتێلا']},
+{name:'زەڵاتە',price:1,types:['بوکس','سەموون','تورتێلا']},
+{name:'سۆس',price:0.5,types:['بوکس','سەموون','تورتێلا']}
+];
+let selectedType='';
+let quantities={};
+
+function chooseType(type){
+selectedType=type;
+quantities={};
+document.getElementById('menuTitle').textContent=type+' - بەرهەمەکان';
+renderProducts();
+showPage('menu');
+}
+function renderProducts(){
+const box=document.getElementById('products');
+box.innerHTML='';
+items.filter(item=>item.types.includes(selectedType)).forEach((item,index)=>{
+const realIndex=items.indexOf(item);
+const qty=quantities[realIndex]||0;
+const div=document.createElement('div');
+div.className='product';
+div.innerHTML='<div class="info"><b>'+item.name+'</b><div class="price">$'+item.price+'</div></div><div class="qty"><button onclick="changeQty('+realIndex+',-1)">−</button><b>'+qty+'</b><button onclick="changeQty('+realIndex+',1)">+</button></div>';
+box.appendChild(div);
+});
+updateTotal();
+}
+function changeQty(index,amount){
+quantities[index]=Math.max(0,(quantities[index]||0)+amount);
+renderProducts();
+}
+function calculateTotal(){
+return items.reduce((sum,item,index)=>sum+(quantities[index]||0)*item.price,0);
+}
+function updateTotal(){
+document.getElementById('total').textContent=calculateTotal().toFixed(2);
+}
+function showCart(){
+const chosen=items.map((item,index)=>({...item,qty:quantities[index]||0})).filter(item=>item.qty>0);
+if(!chosen.length){alert('تکایە لانیکەم یەک بەرهەم هەڵبژێرە');return;}
+document.getElementById('cartItems').innerHTML=
+'<div class="cartline"><b>'+selectedType+'</b><b></b></div>'+
+chosen.map(item=>'<div class="cartline"><span>'+item.name+' × '+item.qty+'</span><b>$'+(item.qty*item.price).toFixed(2)+'</b></div>').join('');
+document.getElementById('cartTotal').textContent=calculateTotal().toFixed(2);
+showPage('cart');
+}
+function placeOrder(){
+const order={type:selectedType,items:items.map((item,index)=>({name:item.name,qty:quantities[index]||0,price:item.price})).filter(item=>item.qty>0),total:calculateTotal(),time:new Date().toLocaleTimeString()};
+try{
+let orders=JSON.parse(localStorage.getItem('penguinOrders')||'[]');
+orders.push(order);
+localStorage.setItem('penguinOrders',JSON.stringify(orders));
+}catch(e){}
+showPage('done');
+}
+function newOrder(){
+selectedType='';
+quantities={};
+showPage('start');
+}
+function showPage(id){
+['start','menu','cart','done'].forEach(page=>document.getElementById(page).classList.toggle('hidden',page!==id));
+}
+</script>
+</body>
+</html>
